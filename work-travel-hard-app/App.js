@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { theme } from "./colors";
 
 const STORAGE_KEY = "@toDos";
+const WORK_OR_TRAVEL = "@tab";
 
 export default function App() {
   const [working, setWorking] = useState(true);
@@ -24,10 +25,24 @@ export default function App() {
   const [toDos, setToDos] = useState({});
   useEffect(() => {
     loadToDos();
+    loadTab();
   }, []);
-  const travel = () => setWorking(false);
-  const work = () => setWorking(true);
+  const travel = async () => {
+    setWorking(false);
+    saveTab(false);
+  };
+  const work = async () => {
+    setWorking(true);
+    saveTab(true);
+  };
   const onChangeText = (payload) => setText(payload);
+  const saveTab = async (isworking) => {
+    await AsyncStorage.setItem(WORK_OR_TRAVEL, isworking.toString());
+  };
+  const loadTab = async () => {
+    const isworking = await AsyncStorage.getItem(WORK_OR_TRAVEL);
+    setWorking(JSON.parse(isworking));
+  };
   const saveToDos = async (toSave) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   };
@@ -131,7 +146,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   toDo: {
-    backgroundColor: theme.grey,
+    backgroundColor: theme.toDoBg,
     marginBottom: 10,
     paddingVertical: 20,
     paddingHorizontal: 20,
