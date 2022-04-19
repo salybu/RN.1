@@ -14,6 +14,7 @@ import {
   Platform,
 } from "react-native";
 import { Fontisto } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { theme } from "./colors";
 
@@ -58,10 +59,20 @@ export default function App() {
       return;
     }
     // save to do
-    const newToDos = { ...toDos, [Date.now()]: { text, working } };
+    const newToDos = {
+      ...toDos,
+      [Date.now()]: { text, working, completed: false },
+    };
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
+  };
+  const completeTodo = async (key) => {
+    let newToDos = { ...toDos };
+    const newObject = { ...newToDos[key], completed: !newToDos[key].completed };
+    newToDos[key] = newObject;
+    setToDos(newToDos);
+    saveToDos(newToDos);
   };
   const deleteToDo = (key) => {
     if (Platform.OS === "web") {
@@ -128,7 +139,37 @@ export default function App() {
         {Object.keys(toDos).map((key) =>
           toDos[key].working === working ? (
             <View style={styles.toDo} key={key}>
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              <View style={styles.toDoLeft}>
+                <TouchableOpacity
+                  style={styles.toDoCheck}
+                  onPress={() => completeTodo(key)}
+                >
+                  {toDos[key].completed === false ? (
+                    <MaterialCommunityIcons
+                      name="checkbox-blank-outline"
+                      size={20}
+                      color="white"
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="checkbox-marked"
+                      size={20}
+                      color={theme.grey}
+                    />
+                  )}
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    ...styles.toDoText,
+                    color:
+                      toDos[key].completed === false ? "white" : theme.grey,
+                    textDecorationLine:
+                      toDos[key].completed === false ? "none" : "line-through",
+                  }}
+                >
+                  {toDos[key].text}
+                </Text>
+              </View>
               <TouchableOpacity onPress={() => deleteToDo(key)}>
                 <Fontisto name="trash" size={18} color={theme.grey} />
               </TouchableOpacity>
@@ -168,6 +209,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  toDoLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  toDoCheck: {
+    marginRight: 5,
   },
   toDoText: {
     color: "white",
